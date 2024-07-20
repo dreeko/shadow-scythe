@@ -16,7 +16,7 @@ return {
 	load_tileset = function(res_path, tileset_name)
 		local tiles = {}
 		local tile_map = dofile(res_path .. tileset_name .. ".lua")
-		for k, v in pairs(tile_map.tiles) do
+		for _, v in pairs(tile_map.tiles) do
 			tiles[v.id + 1] = { sprite = love.graphics.newImage(res_path .. v.image), type = v.type }
 		end
 		return tiles
