@@ -5,31 +5,35 @@ function love.load()
 	FLOOR = 0
 	CEIL = 20 * 32
 	WALL = 30 * 32
+	JUMP_CD = 1
 	love.physics.setMeter(64) --the height of a meter our worlds will be 64px
 	World = love.physics.newWorld(0, 9.81 * 64, true) --create a world for the bodies to exist in with horizontal gravity of 0 and vertical gravity of 9.81
 	Map_fn = require("load_map")
 	Map = Map_fn.load_world("swamp_1", "swamp_1_tiles")
+	Map_fn.init_physics(Map)
 end
 
 function love.update(dt)
 	World:update(dt)
+	JUMP_CD = JUMP_CD + dt
 	if love.keyboard.isDown("right") then
-		X = Clamp(X + 60 * dt, FLOOR, WALL)
+		Map.objects.player.body:applyForce(150, 0)
 	end
 	if love.keyboard.isDown("down") then
-		Y = Clamp(Y + 60 * dt, FLOOR, CEIL)
 	end
 	if love.keyboard.isDown("up") then
-		Y = Y - 60 * dt
+		if JUMP_CD >= 1 then
+			Map.objects.player.body:applyLinearImpulse(0, -50)
+			JUMP_CD = 0
+		end
 	end
 	if love.keyboard.isDown("left") then
-		X = Clamp(X - 60 * dt, FLOOR, WALL)
 	end
 end
 
 function love.draw()
 	Map_fn.draw_map(Map)
-	love.graphics.rectangle("line", X, Y, 10, 10)
+	love.graphics.draw(Map.tileset[10].sprite, Map.objects.player.body:getX(), Map.objects.player.body:getY())
 end
 
 function Clamp(num, lim_min, lim_max)
