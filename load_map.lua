@@ -1,24 +1,39 @@
 return {
-	load_map = function(path, module)
-		local map = dofile(path .. "/" .. module .. ".lua")
-		return map.layers[1]
-	end,
-	draw_map = function(map, in_tiles)
-		for i = 1, #map.data, 1 do
-			--print(x .. " " .. y .. " " .. map.data[x * y])
-			love.graphics.draw(
-				in_tiles[map.data[i]].sprite,
-				((i - 1) % map.width) * 32,
-				math.floor((i - 1) / map.width) * 32
-			)
-		end
-	end,
-	load_tileset = function(res_path, tileset_name)
-		local tiles = {}
-		local tile_map = dofile(res_path .. tileset_name .. ".lua")
+	load_world = function(map_name, tileset_name)
+		local map = dofile("./map/" .. map_name .. ".lua")
+		map.tileset = {}
+		map.objects = {}
+		local tile_map = dofile("./assets/1 Tiles/" .. tileset_name .. ".lua")
 		for _, v in pairs(tile_map.tiles) do
-			tiles[v.id + 1] = { sprite = love.graphics.newImage(res_path .. v.image), type = v.type }
+			map.tileset[v.id + 1] = {
+				sprite = love.graphics.newImage("assets/1 Tiles/" .. v.image),
+				type = v.type,
+			}
 		end
-		return tiles
+		for i, value in ipairs(map.layers[1].data) do
+			table.insert(map.objects, {
+				sprite = value,
+				type = map.tileset[value].type,
+				pos = {
+					x = ((i - 1) % map.layers[1].width) * 32,
+					y = math.floor((i - 1) / map.layers[1].width) * 32,
+				},
+			})
+		end
+		return map
+	end,
+
+	draw_map = function(map)
+		for _, obj in pairs(map.objects) do
+			love.graphics.draw(map.tileset[obj.sprite].sprite, obj.pos.x, obj.pos.y)
+		end
+	end,
+
+	init_physics = function(map)
+		for tile in map.tiles do
+			if tile.type == "Wall" then
+				love.physics.newBody(World, tile.pos.x, tile.pos.y, "static")
+			end
+		end
 	end,
 }
